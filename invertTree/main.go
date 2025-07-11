@@ -9,6 +9,9 @@ type TreeNode struct {
 }
 
 func invertTree(root *TreeNode) *TreeNode {
+	if root == nil {
+		return nil
+	}
 	queue := []*TreeNode{root}
 
 	for len(queue) > 0 {
@@ -105,7 +108,8 @@ func main() {
 	fmt.Printf("q3: %v ANS: %v\n", q3, treeToArr(ansTree3))
 
 	// // // ex4
-	// q4 := []int{}
-	// ans4 := []int{}
-	// fmt.Printf("q1: %v ANS: %v\n", q4, ans4)
+	q4 := []interface{}{}
+	tree4 := arrToTree(q4)
+	ansTree4 := invertTree(tree4)
+	fmt.Printf("q1: %v ANS: %v\n", q4, treeToArr(ansTree4))
 }
