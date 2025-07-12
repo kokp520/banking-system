@@ -2,9 +2,9 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/kokp520/banking-system/server/internal/model"
 	"github.com/kokp520/banking-system/server/internal/service"
 	"github.com/kokp520/banking-system/server/pkg/response"
+	"github.com/shopspring/decimal"
 )
 
 type AccountHandler struct {
@@ -16,6 +16,19 @@ func NewAccountHandler(accountService *service.AccountService) *AccountHandler {
 		accountService: accountService,
 	}
 }
+
+// REQ
+
+type CreateAccountRequest struct {
+	Name           string          `json:"name" binding:"required"`
+	InitialBalance decimal.Decimal `json:"initial_balance"`
+}
+
+type GetAccountRequest struct {
+	ID uint `uri:"id" binging:"required"`
+}
+
+// API
 
 // CreateAccount 創建帳戶 API
 // @Summary 創建銀行帳戶
@@ -29,16 +42,41 @@ func NewAccountHandler(accountService *service.AccountService) *AccountHandler {
 // @Failure 500 {object} response.ErrorResponse
 // @Router /v1/accounts [post]
 func (h *AccountHandler) CreateAccount(c *gin.Context) {
-	var req model.CreateAccountRequest
+	var req CreateAccountRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, err.Error())
 		return
 	}
 
-	account, err := h.accountService.CreateAccount(c.Request.Context(), &req)
+	account, err := h.accountService.CreateAccount(c.Request.Context(), service.CreateAccountInput{
+		Name:           req.Name,
+		InitialBalance: req.InitialBalance,
+	})
 	if err != nil {
 		response.InternalError(c, err.Error())
+		return
+	}
+
+	response.Success(c, account)
+}
+
+func (h *AccountHandler) GetAccount(c *gin.Context) {
+	var req GetAccountRequest
+	if err := c.ShouldBindUri(&req); err != nil {
+		response.BadRequest(c, "invalid id")
+		return
+	}
+
+	// id定義為uint
+	//id, err := strconv.ParseUint(req.ID, 10, 32)
+	//if err != nil {
+	//	response.BadRequest(c, "parse uint failed", err)
+	//}
+
+	account, err := h.accountService.GetAccount(c.Request.Context(), req.ID)
+	if err != nil {
+		response.Error(c, response.AccountNotFound)
 		return
 	}
 

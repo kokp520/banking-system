@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/kokp520/banking-system/server/internal/middleware"
+	"github.com/kokp520/banking-system/server/internal/storage"
 	"log"
 	"net/http"
 
@@ -10,7 +12,6 @@ import (
 	"github.com/kokp520/banking-system/server/internal/service"
 	"github.com/kokp520/banking-system/server/pkg/config"
 	"github.com/kokp520/banking-system/server/pkg/logger"
-	"github.com/kokp520/banking-system/server/pkg/storage"
 )
 
 var cfg *config.Config
@@ -30,7 +31,8 @@ func main() {
 	r := initRouter()
 
 	// 未來可以改用httpserver, handler帶入gin engine, 支援更多可控性
-	if e := r.Run(cfg.Server.Port); e != nil {
+	port := fmt.Sprintf(":%v", cfg.Server.Port)
+	if e := r.Run(port); e != nil {
 		log.Fatal("failed to start server", e)
 	}
 }
@@ -60,6 +62,7 @@ func initRouter() *gin.Engine {
 		accounts := v1.Group("/accounts")
 		{
 			accounts.POST("", accountHandler.CreateAccount)
+			accounts.GET("/:id", accountHandler.GetAccount)
 		}
 	}
 

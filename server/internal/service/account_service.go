@@ -3,11 +3,14 @@ package service
 import (
 	"context"
 	"github.com/kokp520/banking-system/server/internal/model"
+	"github.com/kokp520/banking-system/server/internal/storage"
 	"github.com/kokp520/banking-system/server/pkg/logger"
-	"github.com/kokp520/banking-system/server/pkg/storage"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
+// AccountService
+// 可切換成mysql 實作
 type AccountService struct {
 	storage *storage.MemoryStorage
 }
@@ -18,14 +21,19 @@ func NewAccountService(storage *storage.MemoryStorage) *AccountService {
 	}
 }
 
-func (s *AccountService) CreateAccount(ctx context.Context, req *model.CreateAccountRequest) (*model.Account, error) {
+type CreateAccountInput struct {
+	Name           string
+	InitialBalance decimal.Decimal
+}
+
+func (s *AccountService) CreateAccount(ctx context.Context, in CreateAccountInput) (*model.Account, error) {
 	account := &model.Account{
-		Name:    req.Name,
-		Balance: req.InitialBalance,
+		Name:    in.Name,
+		Balance: in.InitialBalance,
 	}
 
 	if err := s.storage.CreateAccount(account); err != nil {
-		logger.Error("failed to create account", zap.Error(err), zap.String("name", req.Name))
+		logger.Error("failed to create account", zap.Error(err), zap.String("name", in.Name))
 		return nil, err
 	}
 
@@ -46,8 +54,9 @@ func (s *AccountService) GetAccount(ctx context.Context, id uint) (*model.Accoun
 }
 
 // Deposit
-// func (s *AccountService) Deposit() error {
-// }
+//func (s *AccountService) Deposit() error {
+//}
+
 //
 // Withdraw
 // func (s *AccountService) Withdraw() error {
