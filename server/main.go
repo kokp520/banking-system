@@ -12,6 +12,9 @@ import (
 	"github.com/kokp520/banking-system/server/internal/service"
 	"github.com/kokp520/banking-system/server/pkg/config"
 	"github.com/kokp520/banking-system/server/pkg/logger"
+	
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
 
 var cfg *config.Config
@@ -69,6 +72,10 @@ func initRouter() *gin.Engine {
 			account.POST("/:id/transfer", accountHandler.Transfer)
 		}
 	}
+
+	// Swagger UI
+	r.Static("/api", "./api")
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/api/openapi.yaml")))
 
 	return r
 }
