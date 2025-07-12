@@ -61,6 +61,12 @@ type WithdrawInput struct {
 	Amount decimal.Decimal
 }
 
+type TransferInput struct {
+	FromAccountID uint64
+	ToAccountID   uint64
+	Amount        decimal.Decimal
+}
+
 // Deposit 存款操作
 func (s *AccountService) Deposit(ctx context.Context, id uint64, in DepositInput) error {
 	if err := s.storage.Deposit(id, in.Amount); err != nil {
@@ -93,6 +99,27 @@ func (s *AccountService) Withdraw(ctx context.Context, id uint64, in WithdrawInp
 
 	logger.WithTraceID(ctx).Info("withdraw successful",
 		zap.Uint64("accountId", id),
+		zap.String("amount", in.Amount.String()),
+	)
+
+	return nil
+}
+
+// Transfer 轉帳操作
+func (s *AccountService) Transfer(ctx context.Context, in TransferInput) error {
+	if err := s.storage.Transfer(in.FromAccountID, in.ToAccountID, in.Amount); err != nil {
+		logger.WithTraceID(ctx).Error("failed to transfer", 
+			zap.Error(err), 
+			zap.Uint64("fromAccountId", in.FromAccountID),
+			zap.Uint64("toAccountId", in.ToAccountID),
+			zap.String("amount", in.Amount.String()),
+		)
+		return err
+	}
+
+	logger.WithTraceID(ctx).Info("transfer successful",
+		zap.Uint64("fromAccountId", in.FromAccountID),
+		zap.Uint64("toAccountId", in.ToAccountID),
 		zap.String("amount", in.Amount.String()),
 	)
 

@@ -37,6 +37,11 @@ type WithdrawRequest struct {
 	Amount decimal.Decimal `json:"amount" binding:"required"`
 }
 
+type TransferRequest struct {
+	ToAccountID uint64          `json:"to_account_id" binding:"required"`
+	Amount      decimal.Decimal `json:"amount" binding:"required"`
+}
+
 // API
 
 // CreateAccount 創建帳戶 API
@@ -161,4 +166,60 @@ func (h *AccountHandler) Withdraw(c *gin.Context) {
 	}
 
 	response.Success(c, gin.H{"message": "withdraw successful"})
+}
+
+// Transfer 轉帳 API
+// @Summary 轉帳
+// @Description 從一個帳戶轉帳到另一個帳戶
+// @Tags accounts
+// @Accept json
+// @Produce json
+// @Param id path uint64 true "來源帳戶ID"
+// @Param transfer body TransferRequest true "轉帳信息"
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /v1/accounts/{id}/transfer [post]
+func (h *AccountHandler) Transfer(c *gin.Context) {
+	fromIDStr := c.Param("id")
+	fromID, err := strconv.ParseUint(fromIDStr, 10, 64)
+	if err != nil {
+		response.BadRequest(c, "invalid from account id")
+		return
+	}
+
+	var req TransferRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	// 手動驗證金額必須大於0
+	if req.Amount.LessThanOrEqual(decimal.Zero) {
+		response.BadRequest(c, "amount must be greater than 0")
+		return
+	}
+
+	// 檢查不能轉給自己
+	if fromID == req.ToAccountID {
+		response.BadRequest(c, "cannot transfer to the same account")
+		return
+	}
+
+	err = h.accountService.Transfer(c.Request.Context(), service.TransferInput{
+		FromAccountID: fromID,
+		ToAccountID:   req.ToAccountID,
+		Amount:        req.Amount,
+	})
+	if err != nil {
+		response.InternalError(c, err.Error())
+		return
+	}
+
+	response.Success(c, gin.H{
+		"message":        "transfer successful",
+		"from_account":   fromID,
+		"to_account":     req.ToAccountID,
+		"amount":         req.Amount.String(),
+	})
 }

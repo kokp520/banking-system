@@ -62,8 +62,6 @@ func (s *MemoryStorage) GetAccountByID(id uint64) (*model.Account, error) {
 	return &accountCopy, nil
 }
 
-// Deposit
-// 如果使用MySQL，這個操作可以用事務包裝：BEGIN; UPDATE accounts SET balance = balance + ? WHERE id = ?; COMMIT;
 func (s *MemoryStorage) Deposit(id uint64, amount decimal.Decimal) error {
 	if amount.LessThanOrEqual(decimal.Zero) {
 		return errors.New("deposit amount cannot be negative")
@@ -86,8 +84,6 @@ func (s *MemoryStorage) Deposit(id uint64, amount decimal.Decimal) error {
 	return nil
 }
 
-// Withdraw
-// 如果使用MySQL，這個操作可以用事務包裝：BEGIN; UPDATE accounts SET balance = balance - ? WHERE id = ? AND balance >= ?; COMMIT;
 func (s *MemoryStorage) Withdraw(id uint64, amount decimal.Decimal) error {
 	if amount.LessThanOrEqual(decimal.Zero) {
 		return errors.New("withdraw amount cannot be negative")
@@ -111,5 +107,86 @@ func (s *MemoryStorage) Withdraw(id uint64, amount decimal.Decimal) error {
 
 	account.Balance = account.Balance.Sub(amount)
 	account.UpdatedAt = time.Now()
+	return nil
+}
+
+func (s *MemoryStorage) Transfer(fromID, toID uint64, amount decimal.Decimal) error {
+	if amount.LessThanOrEqual(decimal.Zero) {
+		return errors.New("transfer amount must be positive")
+	}
+
+	if fromID == toID {
+		return errors.New("cannot transfer to the same account")
+	}
+
+	var firstLock, secondLock *sync.RWMutex
+	var firstID, secondID uint64
+
+	if fromID < toID {
+		firstID, secondID = fromID, toID
+	} else {
+		firstID, secondID = toID, fromID
+	}
+
+	firstLock = s.getAccountLock(firstID)
+	secondLock = s.getAccountLock(secondID)
+
+	firstLock.RLock()
+	secondLock.RLock()
+
+	s.globalMutex.RLock()
+	fromAccount, fromExists := s.accounts[fromID]
+	toAccount, toExists := s.accounts[toID]
+	s.globalMutex.RUnlock()
+
+	if !fromExists {
+		firstLock.RUnlock()
+		secondLock.RUnlock()
+		return errors.New("source account not found")
+	}
+	if !toExists {
+		firstLock.RUnlock()
+		secondLock.RUnlock()
+		return errors.New("destination account not found")
+	}
+
+	if fromAccount.Balance.LessThan(amount) {
+		firstLock.RUnlock()
+		secondLock.RUnlock()
+		return errors.New("insufficient balance")
+	}
+
+	// 釋放讀鎖
+	firstLock.RUnlock()
+	secondLock.RUnlock()
+
+	firstLock.Lock()
+	defer firstLock.Unlock()
+
+	secondLock.Lock()
+	defer secondLock.Unlock()
+
+	s.globalMutex.RLock()
+	fromAccount, fromExists = s.accounts[fromID]
+	toAccount, toExists = s.accounts[toID]
+	s.globalMutex.RUnlock()
+
+	if !fromExists {
+		return errors.New("source account not found")
+	}
+	if !toExists {
+		return errors.New("destination account not found")
+	}
+
+	if fromAccount.Balance.LessThan(amount) {
+		return errors.New("insufficient balance")
+	}
+
+	fromAccount.Balance = fromAccount.Balance.Sub(amount)
+	fromAccount.UpdatedAt = time.Now()
+
+	toAccount.Balance = toAccount.Balance.Add(amount)
+	toAccount.UpdatedAt = time.Now()
+
 	return nil
 }
