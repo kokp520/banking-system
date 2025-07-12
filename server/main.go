@@ -70,6 +70,7 @@ func initRouter() *gin.Engine {
 			account.POST("/:id/deposit", accountHandler.Deposit)
 			account.POST("/:id/withdraw", accountHandler.Withdraw)
 			account.POST("/:id/transfer", accountHandler.Transfer)
+			account.GET("/:id/transactions", accountHandler.GetTransactions)
 		}
 	}
 

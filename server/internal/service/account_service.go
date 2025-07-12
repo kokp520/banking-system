@@ -5,6 +5,7 @@ import (
 	"github.com/kokp520/banking-system/server/internal/model"
 	"github.com/kokp520/banking-system/server/internal/storage"
 	"github.com/kokp520/banking-system/server/pkg/logger"
+	"github.com/kokp520/banking-system/server/pkg/trace"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
@@ -78,6 +79,16 @@ func (s *AccountService) Deposit(ctx context.Context, id uint64, in DepositInput
 		return err
 	}
 
+	traceID := trace.GetTraceID(ctx)
+	deposit := model.NewDeposit(id, in.Amount, traceID)
+	if err := s.storage.AddTransaction(deposit); err != nil {
+		logger.WithTraceID(ctx).Error("failed to add deposit transaction",
+			zap.Error(err),
+			zap.Uint64("accountId", id),
+			zap.String("amount", in.Amount.String()),
+		)
+	}
+
 	logger.WithTraceID(ctx).Info("deposit successful",
 		zap.Uint64("accountId", id),
 		zap.String("amount", in.Amount.String()),
@@ -97,6 +108,16 @@ func (s *AccountService) Withdraw(ctx context.Context, id uint64, in WithdrawInp
 		return err
 	}
 
+	traceID := trace.GetTraceID(ctx)
+	withdraw := model.NewWithdraw(id, in.Amount, traceID)
+	if err := s.storage.AddTransaction(withdraw); err != nil {
+		logger.WithTraceID(ctx).Error("failed to add withdraw transaction",
+			zap.Error(err),
+			zap.Uint64("accountId", id),
+			zap.String("amount", in.Amount.String()),
+		)
+	}
+
 	logger.WithTraceID(ctx).Info("withdraw successful",
 		zap.Uint64("accountId", id),
 		zap.String("amount", in.Amount.String()),
@@ -108,13 +129,24 @@ func (s *AccountService) Withdraw(ctx context.Context, id uint64, in WithdrawInp
 // Transfer 轉帳操作
 func (s *AccountService) Transfer(ctx context.Context, in TransferInput) error {
 	if err := s.storage.Transfer(in.FromAccountID, in.ToAccountID, in.Amount); err != nil {
-		logger.WithTraceID(ctx).Error("failed to transfer", 
-			zap.Error(err), 
+		logger.WithTraceID(ctx).Error("failed to transfer",
+			zap.Error(err),
 			zap.Uint64("fromAccountId", in.FromAccountID),
 			zap.Uint64("toAccountId", in.ToAccountID),
 			zap.String("amount", in.Amount.String()),
 		)
 		return err
+	}
+
+	traceID := trace.GetTraceID(ctx)
+	transfer := model.NewTransfer(in.FromAccountID, in.ToAccountID, in.Amount, traceID)
+	if err := s.storage.AddTransaction(transfer); err != nil {
+		logger.WithTraceID(ctx).Error("failed to add transfer transaction",
+			zap.Error(err),
+			zap.Uint64("fromAccountId", in.FromAccountID),
+			zap.Uint64("toAccountId", in.ToAccountID),
+			zap.String("amount", in.Amount.String()),
+		)
 	}
 
 	logger.WithTraceID(ctx).Info("transfer successful",
@@ -124,4 +156,22 @@ func (s *AccountService) Transfer(ctx context.Context, in TransferInput) error {
 	)
 
 	return nil
+}
+
+func (s *AccountService) GetTransactions(ctx context.Context, accountID uint64) ([]*model.Transaction, error) {
+	transactions, err := s.storage.GetTransactionsByAccountID(accountID)
+	if err != nil {
+		logger.WithTraceID(ctx).Error("failed to get transactions",
+			zap.Error(err),
+			zap.Uint64("accountId", accountID),
+		)
+		return nil, err
+	}
+
+	logger.WithTraceID(ctx).Info("transactions retrieved successfully",
+		zap.Uint64("accountId", accountID),
+		zap.Int("transactionCount", len(transactions)),
+	)
+
+	return transactions, nil
 }

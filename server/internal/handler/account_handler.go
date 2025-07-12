@@ -222,3 +222,20 @@ func (h *AccountHandler) Transfer(c *gin.Context) {
 		"amount":       req.Amount.String(),
 	})
 }
+
+func (h *AccountHandler) GetTransactions(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.BadRequest(c, "invalid account id")
+		return
+	}
+
+	transactions, err := h.accountService.GetTransactions(c.Request.Context(), id)
+	if err != nil {
+		response.InternalError(c, err.Error())
+		return
+	}
+
+	response.Success(c, transactions)
+}

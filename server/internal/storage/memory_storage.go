@@ -10,16 +10,21 @@ import (
 )
 
 type MemoryStorage struct {
-	accounts     map[uint64]*model.Account
-	accountID    uint64
-	globalMutex  sync.RWMutex // 鎖accounts map
-	accountLocks sync.Map     // 鎖每隔帳戶, sync.map是原子性
+	accounts        map[uint64]*model.Account
+	transactions map[uint64]*model.Transaction
+	accountID       uint64
+	transactionID   uint64
+	globalMutex     sync.RWMutex // 鎖accounts map
+	accountLocks    sync.Map     // 鎖每隔帳戶, sync.map是原子性
+	transactionMutex sync.RWMutex
 }
 
 func NewMemoryStorage() *MemoryStorage {
 	return &MemoryStorage{
-		accounts:  make(map[uint64]*model.Account),
-		accountID: 0,
+		accounts:        make(map[uint64]*model.Account),
+		transactions: make(map[uint64]*model.Transaction),
+		accountID:       0,
+		transactionID:   0,
 	}
 }
 
@@ -189,4 +194,40 @@ func (s *MemoryStorage) Transfer(fromID, toID uint64, amount decimal.Decimal) er
 	toAccount.UpdatedAt = time.Now()
 
 	return nil
+}
+
+func (s *MemoryStorage) AddTransaction(transaction *model.Transaction) error {
+	s.transactionMutex.Lock()
+	defer s.transactionMutex.Unlock()
+
+	s.transactionID++
+	transaction.ID = s.transactionID
+	s.transactions[transaction.ID] = transaction
+	return nil
+}
+
+func (s *MemoryStorage) GetTransactionsByAccountID(accountID uint64) ([]*model.Transaction, error) {
+	s.transactionMutex.RLock()
+	defer s.transactionMutex.RUnlock()
+
+	var transactions []*model.Transaction
+	for _, transaction := range s.transactions {
+		if transaction.ToAccountID == accountID || (transaction.FromAccountID != nil && *transaction.FromAccountID == accountID) {
+			transactionCopy := *transaction
+			transactions = append(transactions, &transactionCopy)
+		}
+	}
+	return transactions, nil
+}
+
+func (s *MemoryStorage) GetAllTransactions() ([]*model.Transaction, error) {
+	s.transactionMutex.RLock()
+	defer s.transactionMutex.RUnlock()
+
+	var transactions []*model.Transaction
+	for _, transaction := range s.transactions {
+		transactionCopy := *transaction
+		transactions = append(transactions, &transactionCopy)
+	}
+	return transactions, nil
 }
