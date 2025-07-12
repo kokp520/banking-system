@@ -5,11 +5,29 @@ info:
   description: A RESTful API for banking operations
 
 servers:
-  - url: http://localhost:8080/api/v1
+  - url: http://localhost:8080
     description: Development server
 
 paths:
-  /accounts:
+  /ping:
+    get:
+      summary: Health check endpoint
+      operationId: ping
+      tags:
+        - health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "pong"
+
+  /v1/account:
     post:
       summary: Create a new account
       operationId: createAccount
@@ -27,15 +45,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
+                $ref: '#/components/schemas/SuccessResponse'
         '400':
           description: Invalid request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /accounts/{id}:
+  /v1/account/{id}:
     get:
       summary: Get account by ID
       operationId: getAccount
@@ -54,15 +78,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
-        '404':
-          description: Account not found
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /accounts/{id}/deposit:
+  /v1/account/{id}/deposit:
     post:
       summary: Deposit money to account
       operationId: deposit
@@ -87,9 +111,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /accounts/{id}/withdraw:
+  /v1/account/{id}/withdraw:
     post:
       summary: Withdraw money from account
       operationId: withdraw
@@ -114,9 +150,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /accounts/{id}/transfer:
+  /v1/account/{id}/transfer:
     post:
       summary: Transfer money between accounts
       operationId: transfer
@@ -141,7 +189,47 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /swagger/*any:
+    get:
+      summary: Swagger UI
+      operationId: swaggerUI
+      tags:
+        - documentation
+      responses:
+        '200':
+          description: Swagger UI page
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /api/swagger.yaml:
+    get:
+      summary: OpenAPI specification
+      operationId: openAPISpec
+      tags:
+        - documentation
+      responses:
+        '200':
+          description: OpenAPI specification file
+          content:
+            text/yaml:
+              schema:
+                type: string
 
 components:
   schemas:
@@ -151,17 +239,22 @@ components:
         id:
           type: integer
           format: int64
+          example: 1
         name:
           type: string
+          example: "John Doe"
         balance:
           type: string
-          format: decimal
+          description: "Balance formatted as decimal string with 2 decimal places"
+          example: "1000.50"
         created_at:
           type: string
           format: date-time
+          example: "2023-01-01T12:00:00Z"
         updated_at:
           type: string
           format: date-time
+          example: "2023-01-01T12:00:00Z"
 
     CreateAccountRequest:
       type: object
@@ -170,10 +263,12 @@ components:
       properties:
         name:
           type: string
+          example: "John Doe"
         initial_balance:
           type: string
-          format: decimal
-          default: "0"
+          description: "Initial balance as decimal string"
+          example: "1000.00"
+          default: "0.00"
 
     DepositRequest:
       type: object
@@ -182,7 +277,8 @@ components:
       properties:
         amount:
           type: string
-          format: decimal
+          description: "Amount to deposit as decimal string"
+          example: "100.50"
 
     WithdrawRequest:
       type: object
@@ -191,35 +287,49 @@ components:
       properties:
         amount:
           type: string
-          format: decimal
+          description: "Amount to withdraw as decimal string"
+          example: "50.25"
 
     TransferRequest:
       type: object
       required:
-        - to_id
+        - to_account_id
         - amount
       properties:
-        to_id:
+        to_account_id:
           type: integer
           format: int64
+          description: "Target account ID for transfer"
+          example: 2
         amount:
           type: string
-          format: decimal
+          description: "Amount to transfer as decimal string"
+          example: "75.00"
 
-    Response:
+    SuccessResponse:
       type: object
       properties:
         code:
           type: integer
+          example: 200
         message:
           type: string
+          example: "success"
         data:
-          type: object
+          oneOf:
+            - $ref: '#/components/schemas/Account'
+            - type: object
+              additionalProperties: true
 
     ErrorResponse:
       type: object
       properties:
         code:
           type: integer
+          example: 400
         message:
           type: string
+          example: "invalid parameters"
+        data:
+          type: object
+          nullable: true
