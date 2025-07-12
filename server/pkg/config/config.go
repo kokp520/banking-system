@@ -28,9 +28,6 @@ func Setup() (*Config, error) {
 	viper.SetDefault("server.write_timeout", 60)
 	viper.SetDefault("server.rate_limit", 1000)
 
-	viper.SetDefault("database.type", "mysql")
-	viper.SetDefault("database.charset", "utf8mb4")
-
 	if err := viper.ReadInConfig(); err != nil {
 		// 用viper內部的Error defind
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
