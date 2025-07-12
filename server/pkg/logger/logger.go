@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"context"
+	"github.com/kokp520/banking-system/server/pkg/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -87,6 +89,14 @@ func Init(level, format, logDir string) error {
 
 	Logger = logger
 	return nil
+}
+
+func WithTraceID(ctx context.Context) *zap.Logger {
+	traceID := trace.GetTraceID(ctx)
+	if traceID == "" {
+		return Logger
+	}
+	return Logger.With(zap.String(trace.Key, traceID))
 }
 
 func Info(msg string, fields ...zap.Field) {

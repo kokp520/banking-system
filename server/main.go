@@ -46,6 +46,7 @@ func initRouter() *gin.Engine {
 
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger())
+	r.Use(middleware.TraceID())
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

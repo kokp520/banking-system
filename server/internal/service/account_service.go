@@ -33,11 +33,11 @@ func (s *AccountService) CreateAccount(ctx context.Context, in CreateAccountInpu
 	}
 
 	if err := s.storage.CreateAccount(account); err != nil {
-		logger.Error("failed to create account", zap.Error(err), zap.String("name", in.Name))
+		logger.WithTraceID(ctx).Error("failed to create account", zap.Error(err), zap.String("name", in.Name))
 		return nil, err
 	}
 
-	logger.Info("account created successfully",
+	logger.WithTraceID(ctx).Info("account created successfully",
 		zap.Uint("accountId", account.ID),
 		zap.String("name", account.Name),
 		zap.String("initialBalance", account.Balance.String()),

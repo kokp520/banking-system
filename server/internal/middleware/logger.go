@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/kokp520/banking-system/server/pkg/trace"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,8 @@ func Logger() gin.HandlerFunc {
 			path = path + "?" + raw
 		}
 
+		traceID := trace.GetTraceID(c.Request.Context())
+
 		logger.Info("request",
 			zap.String("method", method),
 			zap.String("path", path),
@@ -32,6 +35,7 @@ func Logger() gin.HandlerFunc {
 			zap.Int("status", statusCode),
 			zap.Duration("latency", latency),
 			zap.String("user_agent", c.Request.UserAgent()),
+			zap.String("trace_id", traceID),
 		)
 	}
 }
