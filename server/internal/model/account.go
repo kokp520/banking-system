@@ -6,7 +6,7 @@ import (
 )
 
 type Account struct {
-	ID        uint            `json:"id"`         // autoincr
+	ID        uint64          `json:"id"`         // autoincr
 	Name      string          `json:"name"`       // 用戶名
 	Balance   decimal.Decimal `json:"balance"`    // 餘額
 	CreatedAt time.Time       `json:"created_at"` // 創建時間

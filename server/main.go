@@ -60,10 +60,12 @@ func initRouter() *gin.Engine {
 
 	v1 := r.Group("/v1")
 	{
-		accounts := v1.Group("/accounts")
+		account := v1.Group("/account")
 		{
-			accounts.POST("", accountHandler.CreateAccount)
-			accounts.GET("/:id", accountHandler.GetAccount)
+			account.POST("", accountHandler.CreateAccount)
+			account.GET("/:id", accountHandler.GetAccount)
+			account.POST("/:id/deposit", accountHandler.Deposit)
+			account.POST("/:id/withdraw", accountHandler.Withdraw)
 		}
 	}
 

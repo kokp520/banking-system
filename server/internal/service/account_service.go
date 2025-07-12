@@ -38,7 +38,7 @@ func (s *AccountService) CreateAccount(ctx context.Context, in CreateAccountInpu
 	}
 
 	logger.WithTraceID(ctx).Info("account created successfully",
-		zap.Uint("accountId", account.ID),
+		zap.Uint64("accountId", account.ID),
 		zap.String("name", account.Name),
 		zap.String("initialBalance", account.Balance.String()),
 	)
@@ -49,19 +49,52 @@ func (s *AccountService) CreateAccount(ctx context.Context, in CreateAccountInpu
 // GetAccount
 // id: accountId
 // @Return: model.Account
-func (s *AccountService) GetAccount(ctx context.Context, id uint) (*model.Account, error) {
+func (s *AccountService) GetAccount(ctx context.Context, id uint64) (*model.Account, error) {
 	return s.storage.GetAccountByID(id)
 }
 
-// Deposit
-//func (s *AccountService) Deposit() error {
-//}
+type DepositInput struct {
+	Amount decimal.Decimal
+}
 
-//
-// Withdraw
-// func (s *AccountService) Withdraw() error {
-// }
-//
-// Transfer
-// func (s *AccountService) Transfer() error {
-// }
+type WithdrawInput struct {
+	Amount decimal.Decimal
+}
+
+// Deposit 存款操作
+func (s *AccountService) Deposit(ctx context.Context, id uint64, in DepositInput) error {
+	if err := s.storage.Deposit(id, in.Amount); err != nil {
+		logger.WithTraceID(ctx).Error("failed to deposit",
+			zap.Error(err),
+			zap.Uint64("accountId", id),
+			zap.String("amount", in.Amount.String()),
+		)
+		return err
+	}
+
+	logger.WithTraceID(ctx).Info("deposit successful",
+		zap.Uint64("accountId", id),
+		zap.String("amount", in.Amount.String()),
+	)
+
+	return nil
+}
+
+// Withdraw 提款操作
+func (s *AccountService) Withdraw(ctx context.Context, id uint64, in WithdrawInput) error {
+	if err := s.storage.Withdraw(id, in.Amount); err != nil {
+		logger.WithTraceID(ctx).Error("failed to withdraw",
+			zap.Error(err),
+			zap.Uint64("accountId", id),
+			zap.String("amount", in.Amount.String()),
+		)
+		return err
+	}
+
+	logger.WithTraceID(ctx).Info("withdraw successful",
+		zap.Uint64("accountId", id),
+		zap.String("amount", in.Amount.String()),
+	)
+
+	return nil
+}

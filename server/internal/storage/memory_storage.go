@@ -10,21 +10,29 @@ import (
 )
 
 type MemoryStorage struct {
-	accounts  map[uint]*model.Account
-	accountID uint
-	mutex     sync.RWMutex
+	accounts     map[uint64]*model.Account
+	accountID    uint64
+	globalMutex  sync.RWMutex // 鎖accounts map
+	accountLocks sync.Map     // 鎖每隔帳戶, sync.map是原子性
 }
 
 func NewMemoryStorage() *MemoryStorage {
 	return &MemoryStorage{
-		accounts:  make(map[uint]*model.Account),
+		accounts:  make(map[uint64]*model.Account),
 		accountID: 0,
 	}
 }
 
+// getAccountLock
+func (s *MemoryStorage) getAccountLock(accountID uint64) *sync.RWMutex {
+	// sync.map是原子 避免同時對map做操作(get/update)造成race condition
+	value, _ := s.accountLocks.LoadOrStore(accountID, &sync.RWMutex{})
+	return value.(*sync.RWMutex)
+}
+
 func (s *MemoryStorage) CreateAccount(account *model.Account) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.globalMutex.Lock()
+	defer s.globalMutex.Unlock()
 
 	s.accountID++
 	account.ID = s.accountID
@@ -35,11 +43,16 @@ func (s *MemoryStorage) CreateAccount(account *model.Account) error {
 	return nil
 }
 
-func (s *MemoryStorage) GetAccountByID(id uint) (*model.Account, error) {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+func (s *MemoryStorage) GetAccountByID(id uint64) (*model.Account, error) {
+	// 使用帳戶級別的讀鎖
+	accountLock := s.getAccountLock(id)
+	accountLock.RLock()
+	defer accountLock.RUnlock()
 
+	s.globalMutex.RLock()
 	account, exists := s.accounts[id]
+	s.globalMutex.RUnlock()
+
 	if !exists {
 		return nil, errors.New("account not found")
 	}
@@ -49,29 +62,54 @@ func (s *MemoryStorage) GetAccountByID(id uint) (*model.Account, error) {
 	return &accountCopy, nil
 }
 
-func (s *MemoryStorage) UpdateAccount(account *model.Account) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	if _, exists := s.accounts[account.ID]; !exists {
-		return errors.New("account not found")
+// Deposit
+// 如果使用MySQL，這個操作可以用事務包裝：BEGIN; UPDATE accounts SET balance = balance + ? WHERE id = ?; COMMIT;
+func (s *MemoryStorage) Deposit(id uint64, amount decimal.Decimal) error {
+	if amount.LessThanOrEqual(decimal.Zero) {
+		return errors.New("deposit amount cannot be negative")
 	}
 
-	account.UpdatedAt = time.Now()
-	s.accounts[account.ID] = account
-	return nil
-}
+	accountLock := s.getAccountLock(id)
+	accountLock.Lock()
+	defer accountLock.Unlock()
 
-func (s *MemoryStorage) UpdateAccountBalance(id uint, balance decimal.Decimal) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
+	s.globalMutex.RLock()
 	account, exists := s.accounts[id]
+	s.globalMutex.RUnlock()
+
 	if !exists {
 		return errors.New("account not found")
 	}
 
-	account.Balance = balance
+	account.Balance = account.Balance.Add(amount)
+	account.UpdatedAt = time.Now()
+	return nil
+}
+
+// Withdraw
+// 如果使用MySQL，這個操作可以用事務包裝：BEGIN; UPDATE accounts SET balance = balance - ? WHERE id = ? AND balance >= ?; COMMIT;
+func (s *MemoryStorage) Withdraw(id uint64, amount decimal.Decimal) error {
+	if amount.LessThanOrEqual(decimal.Zero) {
+		return errors.New("withdraw amount cannot be negative")
+	}
+
+	accountLock := s.getAccountLock(id)
+	accountLock.Lock()
+	defer accountLock.Unlock()
+
+	s.globalMutex.RLock()
+	account, exists := s.accounts[id]
+	s.globalMutex.RUnlock()
+
+	if !exists {
+		return errors.New("account not found")
+	}
+
+	if account.Balance.LessThan(amount) {
+		return errors.New("insufficient balance")
+	}
+
+	account.Balance = account.Balance.Sub(amount)
 	account.UpdatedAt = time.Now()
 	return nil
 }
