@@ -6,6 +6,7 @@ import (
 
 type Config struct {
 	Server ServerConfig `mapstructure:"server"`
+	Logger LoggerConfig `mapstructure:"logger"`
 }
 
 type ServerConfig struct {
@@ -14,6 +15,12 @@ type ServerConfig struct {
 	ReadTimeout  int    `mapstructure:"read_timeout"`
 	WriteTimeout int    `mapstructure:"write_timeout"`
 	RateLimit    int    `mapstructure:"rate_limit"`
+}
+
+type LoggerConfig struct {
+	Level  string `mapstructure:"level"`
+	Format string `mapstructure:"format"`
+	Dir    string `mapstructure:"dir"`
 }
 
 func Setup() (*Config, error) {
@@ -27,6 +34,10 @@ func Setup() (*Config, error) {
 	viper.SetDefault("server.read_timeout", 10)
 	viper.SetDefault("server.write_timeout", 60)
 	viper.SetDefault("server.rate_limit", 1000)
+
+	viper.SetDefault("log.level", "info")
+	viper.SetDefault("log.format", "json")
+	viper.SetDefault("log.dir", "logs")
 
 	if err := viper.ReadInConfig(); err != nil {
 		// 用viper內部的Error defind

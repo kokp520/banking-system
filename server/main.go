@@ -20,7 +20,7 @@ func init() {
 	if cfg, err = config.Setup(); err != nil {
 		log.Fatal("failed to load config", err)
 	}
-	if err := logger.Init("info", "json", "logs"); err != nil {
+	if err := logger.Init(cfg.Logger.Level, cfg.Logger.Format, cfg.Logger.Dir); err != nil {
 		log.Fatal("failed to init logger", err)
 	}
 }
@@ -28,7 +28,11 @@ func init() {
 func main() {
 	gin.SetMode(cfg.Server.Mode)
 	r := initRouter()
-	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+
+	// 未來可以改用httpserver, handler帶入gin engine, 支援更多可控性
+	if e := r.Run(cfg.Server.Port); e != nil {
+		log.Fatal("failed to start server", e)
+	}
 }
 
 // 可擴充性說明：
