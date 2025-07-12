@@ -91,7 +91,7 @@ func (h *AccountHandler) GetAccount(c *gin.Context) {
 
 	account, err := h.accountService.GetAccount(c.Request.Context(), req.ID)
 	if err != nil {
-		response.Error(c, response.AccountNotFound)
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -112,7 +112,6 @@ func (h *AccountHandler) Deposit(c *gin.Context) {
 		return
 	}
 
-	// 手動驗證金額必須大於0
 	if req.Amount.LessThanOrEqual(decimal.Zero) {
 		response.BadRequest(c, "amount must be greater than 0")
 		return
@@ -217,9 +216,9 @@ func (h *AccountHandler) Transfer(c *gin.Context) {
 	}
 
 	response.Success(c, gin.H{
-		"message":        "transfer successful",
-		"from_account":   fromID,
-		"to_account":     req.ToAccountID,
-		"amount":         req.Amount.String(),
+		"message":      "transfer successful",
+		"from_account": fromID,
+		"to_account":   req.ToAccountID,
+		"amount":       req.Amount.String(),
 	})
 }

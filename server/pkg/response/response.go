@@ -57,30 +57,18 @@ func Success(c *gin.Context, data interface{}) {
 	Result(c, http.StatusOK, CodeSuccess, data)
 }
 
-func SuccessWithMessage(c *gin.Context, message string, data interface{}) {
-	c.JSON(http.StatusOK, Response{
-		Code:    CodeSuccess,
-		Message: message,
-		Data:    data,
-	})
-}
-
-func Error(c *gin.Context, code int) {
-	Result(c, http.StatusOK, code, nil)
-}
-
-func ErrorWithMessage(c *gin.Context, code int, message string) {
-	c.JSON(http.StatusOK, Response{
-		Code:    code,
+func BadRequest(c *gin.Context, message string) {
+	c.JSON(http.StatusBadRequest, Response{
+		Code:    InvalidParams,
 		Message: message,
 		Data:    nil,
 	})
 }
 
-func BadRequest(c *gin.Context, message string) {
-	ErrorWithMessage(c, InvalidParams, message)
-}
-
 func InternalError(c *gin.Context, message string) {
-	ErrorWithMessage(c, ServerError, message)
+	c.JSON(http.StatusInternalServerError, Response{
+		Code:    ServerError,
+		Message: message,
+		Data:    nil,
+	})
 }
