@@ -28,7 +28,7 @@ func init() {
 	flag.Parse()
 
 	if configFile == "" {
-		configFile = "config"
+		configFile = "./config/config.yaml"
 	}
 
 	var err error

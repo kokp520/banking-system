@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/spf13/viper"
 )
 
@@ -31,10 +29,10 @@ type SwaggerConfig struct {
 }
 
 func Setup(f string) (*Config, error) {
-	viper.SetConfigName("config")
+	viper.SetConfigName(f)
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
-	viper.AddConfigPath(fmt.Sprintf("./%s", f))
+	viper.AddConfigPath("./config")
 
 	viper.SetDefault("server.mode", "debug")
 	viper.SetDefault("server.port", "8080")
