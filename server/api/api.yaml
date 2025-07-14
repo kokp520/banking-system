@@ -54,12 +54,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/account/{id}:
     get:
@@ -72,8 +66,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            description: "Account ID as string (uint64)"
       responses:
         '200':
           description: Account found
@@ -99,8 +93,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            description: "Account ID as string (uint64)"
       requestBody:
         required: true
         content:
@@ -120,12 +114,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/account/{id}/withdraw:
     post:
@@ -138,8 +126,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            description: "Account ID as string (uint64)"
       requestBody:
         required: true
         content:
@@ -159,12 +147,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/account/{id}/transfer:
     post:
@@ -177,8 +159,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            description: "Account ID as string (uint64)"
       requestBody:
         required: true
         content:
@@ -198,12 +180,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 
   /v1/account/{id}/transactions:
     get:
@@ -216,8 +192,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            description: "Account ID as string (uint64)"
       responses:
         '200':
           description: Transaction logs retrieved successfully
@@ -231,40 +207,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /swagger/*any:
-    get:
-      summary: Swagger UI
-      operationId: swaggerUI
-      tags:
-        - documentation
-      responses:
-        '200':
-          description: Swagger UI page
-          content:
-            text/html:
-              schema:
-                type: string
-
-  /api/swagger.yaml:
-    get:
-      summary: OpenAPI specification
-      operationId: openAPISpec
-      tags:
-        - documentation
-      responses:
-        '200':
-          description: OpenAPI specification file
-          content:
-            text/yaml:
-              schema:
-                type: string
 
 components:
   schemas:
@@ -272,12 +214,12 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
-          example: 1
+          type: string
+          description: "Account ID as string (uint64)"
+          example: "1"
         name:
           type: string
-          example: "adi wi"
+          example: "adi wu"
         balance:
           type: string
           description: "Balance formatted as decimal string with 2 decimal places"
@@ -298,7 +240,7 @@ components:
       properties:
         name:
           type: string
-          example: "adi wi"
+          example: "adi wu"
         initial_balance:
           type: string
           description: "Initial balance as decimal string"
@@ -332,10 +274,9 @@ components:
         - amount
       properties:
         to_account_id:
-          type: integer
-          format: int64
-          description: "Target account ID for transfer"
-          example: 2
+          type: string
+          description: "Target account ID for transfer as string (uint64)"
+          example: "2"
         amount:
           type: string
           description: "Amount to transfer as decimal string"
@@ -372,22 +313,22 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
-          example: 1
+          type: string
+          description: "Account ID as string (uint64)"
+          example: "1"
         type:
           type: string
           enum: [deposit, withdraw, transfer]
           example: deposit
         from_account_id:
-          type: integer
-          format: int64
+          type: string
+          description: "Source account ID as string (uint64)"
           nullable: true
-          example: 1
+          example: "1"
         to_account_id:
-          type: integer
-          format: int64
-          example: 2
+          type: string
+          description: "Target account ID as string (uint64)"
+          example: "2"
         amount:
           type: string
           description: "Amount as decimal string with 2 decimal places"
