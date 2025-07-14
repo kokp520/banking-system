@@ -5,10 +5,10 @@ info:
   description: A RESTful API for banking operations
 
 servers:
-  - url: http://localhost:8080
-    description: Development server
   - url: https://adi.tw/bank
     description: Release server
+  - url: http://localhost:8080
+    description: Development server
 
 paths:
   /ping:
