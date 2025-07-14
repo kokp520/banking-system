@@ -1,27 +1,38 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/kokp520/banking-system/server/internal/middleware"
 	"github.com/kokp520/banking-system/server/internal/storage"
-	"log"
-	"net/http"
 
 	"github.com/kokp520/banking-system/server/internal/handler"
 	"github.com/kokp520/banking-system/server/internal/service"
 	"github.com/kokp520/banking-system/server/pkg/config"
 	"github.com/kokp520/banking-system/server/pkg/logger"
 
-	"github.com/swaggo/files"       // swagger embed files
-	"github.com/swaggo/gin-swagger" // gin-swagger middleware
+	swaggerFiles "github.com/swaggo/files"     // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
 var cfg *config.Config
 
 func init() {
+
+	var configFile string
+	flag.StringVar(&configFile, "c", "", "config file path")
+	flag.Parse()
+
+	if configFile == "" {
+		configFile = "config"
+	}
+
 	var err error
-	if cfg, err = config.Setup(); err != nil {
+	if cfg, err = config.Setup(configFile); err != nil {
 		log.Fatal("failed to load config", err)
 	}
 	if err := logger.Init(cfg.Logger.Level, cfg.Logger.Format, cfg.Logger.Dir); err != nil {
@@ -76,7 +87,7 @@ func initRouter() *gin.Engine {
 
 	// Swagger UI
 	r.Static("/api", "./api")
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/api/api.yaml")))
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL(cfg.Swagger.Path)))
 
 	return r
 }

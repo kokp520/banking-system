@@ -11,7 +11,7 @@ WORKDIR /root/
 
 # server直接讀取文件
 COPY --from=builder /app/main .
-COPY --from=builder /app/config.yaml .
+COPY --from=builder /app/config ./config
 COPY --from=builder /app/api ./api
 
 RUN mkdir -p logs

@@ -1,6 +1,6 @@
 server:
   port: "8080"
-  mode: "debug"
+  mode: "release"
   read_timeout: 60
   write_timeout: 60
   rate_limit: 1000
@@ -9,3 +9,6 @@ log:
   level: "info"
   format: "json"
   dir: "logs"
+
+swagger:
+  path: "api/release_bank.yaml"

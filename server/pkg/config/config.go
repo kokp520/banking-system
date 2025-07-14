@@ -1,12 +1,15 @@
 package config
 
 import (
+	"fmt"
+
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Server ServerConfig `mapstructure:"server"`
-	Logger LoggerConfig `mapstructure:"logger"`
+	Server  ServerConfig  `mapstructure:"server"`
+	Logger  LoggerConfig  `mapstructure:"logger"`
+	Swagger SwaggerConfig `mapstructure:"swagger"`
 }
 
 type ServerConfig struct {
@@ -23,11 +26,15 @@ type LoggerConfig struct {
 	Dir    string `mapstructure:"dir"`
 }
 
-func Setup() (*Config, error) {
+type SwaggerConfig struct {
+	Path string `mapstructure:"path"`
+}
+
+func Setup(f string) (*Config, error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
-	viper.AddConfigPath("./config")
+	viper.AddConfigPath(fmt.Sprintf("./%s", f))
 
 	viper.SetDefault("server.mode", "debug")
 	viper.SetDefault("server.port", "8080")
@@ -38,6 +45,8 @@ func Setup() (*Config, error) {
 	viper.SetDefault("log.level", "info")
 	viper.SetDefault("log.format", "json")
 	viper.SetDefault("log.dir", "logs")
+
+	viper.SetDefault("swagger.path", "api/local_bank.yaml")
 
 	if err := viper.ReadInConfig(); err != nil {
 		// 用viper內部的Error defind
