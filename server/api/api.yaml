@@ -244,7 +244,7 @@ components:
           example: 1
         name:
           type: string
-          example: "John Doe"
+          example: "adi wi"
         balance:
           type: string
           description: "Balance formatted as decimal string with 2 decimal places"
@@ -265,7 +265,7 @@ components:
       properties:
         name:
           type: string
-          example: "John Doe"
+          example: "adi wi"
         initial_balance:
           type: string
           description: "Initial balance as decimal string"
