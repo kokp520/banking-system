@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  banking-server:
+    build: .
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "2"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/var/log/banking-system
+    restart: unless-stopped
+    
+    
