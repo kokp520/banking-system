@@ -5,9 +5,8 @@ import (
 )
 
 type Config struct {
-	Server  ServerConfig  `mapstructure:"server"`
-	Logger  LoggerConfig  `mapstructure:"logger"`
-	Swagger SwaggerConfig `mapstructure:"swagger"`
+	Server ServerConfig `mapstructure:"server"`
+	Logger LoggerConfig `mapstructure:"logger"`
 }
 
 type ServerConfig struct {
@@ -22,10 +21,6 @@ type LoggerConfig struct {
 	Level  string `mapstructure:"level"`
 	Format string `mapstructure:"format"`
 	Dir    string `mapstructure:"dir"`
-}
-
-type SwaggerConfig struct {
-	Path string `mapstructure:"path"`
 }
 
 func Setup(f string) (*Config, error) {
@@ -43,8 +38,6 @@ func Setup(f string) (*Config, error) {
 	viper.SetDefault("log.level", "info")
 	viper.SetDefault("log.format", "json")
 	viper.SetDefault("log.dir", "logs")
-
-	viper.SetDefault("swagger.path", "api/local_bank.yaml")
 
 	if err := viper.ReadInConfig(); err != nil {
 		// 用viper內部的Error defind

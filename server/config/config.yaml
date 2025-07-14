@@ -9,6 +9,3 @@ log:
   level: "info"
   format: "json"
   dir: "logs"
-
-swagger:
-  path: "api/local_bank.yaml"
