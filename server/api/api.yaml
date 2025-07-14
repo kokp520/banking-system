@@ -66,8 +66,9 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            description: "Account ID as string (uint64)"
+            type: integer
+            format: uint64
+            description: "Account ID as uint64"
       responses:
         '200':
           description: Account found
@@ -93,8 +94,9 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            description: "Account ID as string (uint64)"
+            type: integer
+            format: uint64
+            description: "Account ID as uint64"
       requestBody:
         required: true
         content:
@@ -126,8 +128,9 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            description: "Account ID as string (uint64)"
+            type: integer
+            format: uint64
+            description: "Account ID as uint64"
       requestBody:
         required: true
         content:
@@ -159,8 +162,9 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            description: "Account ID as string (uint64)"
+            type: integer
+            format: uint64
+            description: "Account ID as uint64"
       requestBody:
         required: true
         content:
@@ -192,8 +196,9 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            description: "Account ID as string (uint64)"
+            type: integer
+            format: uint64
+            description: "Account ID as uint64"
       responses:
         '200':
           description: Transaction logs retrieved successfully
@@ -214,9 +219,10 @@ components:
       type: object
       properties:
         id:
-          type: string
-          description: "Account ID as string (uint64)"
-          example: "1"
+          type: integer
+          format: uint64
+          description: "Account ID as uint64"
+          example: 1
         name:
           type: string
           example: "adi wu"
@@ -274,9 +280,10 @@ components:
         - amount
       properties:
         to_account_id:
-          type: string
-          description: "Target account ID for transfer as string (uint64)"
-          example: "2"
+          type: integer
+          format: uint64
+          description: "Target account ID for transfer as uint64"
+          example: 2
         amount:
           type: string
           description: "Amount to transfer as decimal string"
@@ -313,22 +320,25 @@ components:
       type: object
       properties:
         id:
-          type: string
-          description: "Account ID as string (uint64)"
-          example: "1"
+          type: integer
+          format: uint64
+          description: "Transaction ID as uint64"
+          example: 1
         type:
           type: string
           enum: [deposit, withdraw, transfer]
           example: deposit
         from_account_id:
-          type: string
-          description: "Source account ID as string (uint64)"
+          type: integer
+          format: uint64
+          description: "Source account ID as uint64"
           nullable: true
-          example: "1"
+          example: 1
         to_account_id:
-          type: string
-          description: "Target account ID as string (uint64)"
-          example: "2"
+          type: integer
+          format: uint64
+          description: "Target account ID as uint64"
+          example: 2
         amount:
           type: string
           description: "Amount as decimal string with 2 decimal places"
