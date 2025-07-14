@@ -45,13 +45,19 @@ log:
 - 整合測試 tests/integration_test.go
 
 
+# DEMO AND API DOC
+
+```
+https://adi.tw/bank/swagger/index.html
+```
+
 
 ## install
 
 ### Run in local
 
 ```bash 
-go run server/main.go
+go run server/main.go -c ./config/config.yaml
 ```
 
 ### Run in docker
@@ -59,12 +65,3 @@ go run server/main.go
 ```bash
 docker-compose up -d
 ```
-
-
-## API doc
-
-
-http://localhost:8080/swagger/index.html
-![img.png](img.png)
-
-
