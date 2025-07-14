@@ -31,6 +31,8 @@ func init() {
 		configFile = "./config/config.yaml"
 	}
 
+	fmt.Println("configname ", configFile)
+
 	var err error
 	if cfg, err = config.Setup(configFile); err != nil {
 		log.Fatal("failed to load config", err)
