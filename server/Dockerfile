@@ -18,4 +18,4 @@ RUN mkdir -p logs
 
 EXPOSE 8080
 
-CMD ["./main"]
+CMD ["./main -c ./config/config_release.yaml"]
