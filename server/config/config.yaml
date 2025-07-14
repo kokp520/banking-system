@@ -5,7 +5,7 @@ server:
   write_timeout: 60
   rate_limit: 1000
 
-log:
+logger:
   level: "info"
   format: "json"
   dir: "logs"
