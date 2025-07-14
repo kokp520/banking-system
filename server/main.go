@@ -89,7 +89,7 @@ func initRouter() *gin.Engine {
 
 	// Swagger UI
 	r.Static("/api", "./api")
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/api/api.yaml")))
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL(cfg.Swagger.ApiPath)))
 
 	return r
 }

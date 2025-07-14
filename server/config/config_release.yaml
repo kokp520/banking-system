@@ -9,3 +9,6 @@ log:
   level: "info"
   format: "json"
   dir: "logs"
+
+swagger:
+  api_path: "/bank/api/api.yaml"
