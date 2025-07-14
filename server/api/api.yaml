@@ -7,7 +7,7 @@ info:
 servers:
   - url: http://localhost:8080
     description: Development server
-  - url: httpss://adi.tw/bank
+  - url: https://adi.tw/bank
     description: Release server
 
 paths:
